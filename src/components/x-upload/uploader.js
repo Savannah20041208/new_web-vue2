@@ -1,3 +1,5 @@
+import { performanceOptimizer } from './js/performance.js';
+
 export const uploader = {
   data() {
     return {
