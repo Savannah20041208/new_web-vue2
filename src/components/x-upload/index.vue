@@ -97,15 +97,10 @@ export default {
           return `api/fileUploadTask/upload`;
         }, // 上传地址
         // 根据文件大小和网络条件动态调整分片大小
-
-
-
         chunkSize: 5 * 1024 * 1024,
-
         forceChunkSize: true,
-
-        simultaneousUploads: 4,
-
+        // 动态并发数 - 根据网络状况自动调整
+        simultaneousUploads: 4, // 默认值，实际会动态调整
 
 
         checkChunkUploadedByResponse: (chunk, message) => {

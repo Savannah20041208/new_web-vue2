@@ -1,3 +1,5 @@
+import { performanceOptimizer } from './js/performance.js';
+
 export const file = {
   data() {
     return {};
@@ -56,19 +58,30 @@ export const file = {
     bootstrap(file) {
       // 将文件的上一次进度重置为0
       file._prevProgress = 0;
-      // 使用当前配置的分片大小（可能已经根据文件大小动态调整过）
-      const chunkSize = this.opts.chunkSize;
+      
+      // 动态计算最优分片大小 - 集成性能监控
+      let chunkSize;
+      try {
+        // 使用性能优化器的建议
+        chunkSize = performanceOptimizer.getOptimalChunkSize();
+        console.log('性能优化器建议的分片大小:', this.formatSize(chunkSize));
+      } catch (error) {
+        // 如果性能监控不可用，使用基于文件大小的计算
+        chunkSize = this.getOptimalChunkSize(file.size);
+        console.log('使用基于文件大小的分片大小:', this.formatSize(chunkSize));
+      }
+      
       // 根据配置项决定使用向上取整还是向下取整
       let round = this.opts.forceChunkSize ? Math.ceil : Math.floor;
       // 计算文件需要分成的分片数量，至少为1片
-      let chunks = Math.max(round(file.size / this.opts.chunkSize), 1);
+      let chunks = Math.max(round(file.size / chunkSize), 1);
       // 循环创建每个分片并添加到文件的chunks数组中
       // 清空现有分片（如果重新初始化）
       file.chunks = [];
 
       for (let offset = 0; offset < chunks; offset++) {
         const chunk = this.newChunk(file, offset);
-        // 确保每个分片使用当前的分片大小配置
+        // 确保每个分片使用动态计算的分片大小
         chunk.chunkSize = chunkSize;
         chunk.endByte = this.computeEndByte(chunk);
         file.chunks.push(chunk);
@@ -257,6 +270,38 @@ export const file = {
       file.file = null;
       file.chunks = [];
       this.removeFile(file);
+    },
+
+    // 动态调整分片大小的方法
+    adjustChunkSize(file) {
+      try {
+        const newChunkSize = performanceOptimizer.getOptimalChunkSize();
+        const currentChunkSize = file.chunks[0]?.chunkSize || this.opts.chunkSize;
+        
+        // 如果建议的分片大小与当前不同，且文件还未开始上传
+        if (newChunkSize !== currentChunkSize && !this.isUploading(file)) {
+          console.log(`动态调整分片大小: ${this.formatSize(currentChunkSize)} -> ${this.formatSize(newChunkSize)}`);
+          
+          // 重新初始化文件的分片
+          this.bootstrap(file);
+          
+          return true; // 表示已调整
+        }
+      } catch (error) {
+        console.warn('动态调整分片大小失败:', error);
+      }
+      
+      return false; // 表示未调整
+    },
+
+    // 获取当前最优并发数
+    getOptimalConcurrency() {
+      try {
+        return performanceOptimizer.getOptimalConcurrency();
+      } catch (error) {
+        // 如果性能监控不可用，使用基于网络速度的计算
+        return this.getOptimalConcurrency(this.networkSpeed || 5);
+      }
     },
   },
 };

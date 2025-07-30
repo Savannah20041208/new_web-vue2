@@ -306,6 +306,75 @@ export class NetworkMonitor {
   isFastNetwork() {
     return this.networkInfo.effectiveType === '4g' && this.networkInfo.downlink > 10;
   }
+
+  // 网络预检测 - 测试网络性能
+  async testNetworkPerformance() {
+    const testUrls = [
+      '/api/speed-test',
+      'https://httpbin.org/delay/1',
+      'https://jsonplaceholder.typicode.com/posts/1'
+    ];
+    
+    const results = [];
+    
+    for (const url of testUrls) {
+      try {
+        const startTime = Date.now();
+        const response = await fetch(url, {
+          method: 'HEAD',
+          cache: 'no-cache',
+          signal: AbortSignal.timeout(5000) // 5秒超时
+        });
+        const endTime = Date.now();
+        
+        results.push({
+          url,
+          latency: endTime - startTime,
+          status: response.status
+        });
+      } catch (error) {
+        console.warn(`网络测试失败 ${url}:`, error);
+      }
+    }
+    
+    // 计算平均延迟
+    const avgLatency = results.reduce((sum, result) => sum + result.latency, 0) / results.length;
+    
+    // 根据延迟调整网络速度估算
+    if (avgLatency < 100) {
+      this.networkInfo.downlink = 15; // 高速网络
+    } else if (avgLatency < 300) {
+      this.networkInfo.downlink = 8; // 中速网络
+    } else {
+      this.networkInfo.downlink = 3; // 低速网络
+    }
+    
+    return {
+      avgLatency,
+      results,
+      estimatedSpeed: this.networkInfo.downlink
+    };
+  }
+
+  // 获取网络质量评分
+  getNetworkQualityScore() {
+    const speed = this.getNetworkSpeed();
+    const latency = this.getNetworkLatency();
+    
+    let score = 100;
+    
+    // 根据速度调整评分
+    if (speed < 1) score -= 40;
+    else if (speed < 5) score -= 20;
+    else if (speed > 10) score += 20;
+    
+    // 根据延迟调整评分
+    if (latency > 200) score -= 30;
+    else if (latency > 100) score -= 15;
+    else if (latency < 50) score += 15;
+    
+    return Math.max(0, Math.min(100, score));
+  }
 }
 
 // 内存监控器
@@ -444,6 +513,178 @@ export class PerformanceOptimizer {
     
     return concurrency;
   }
+
+  // 智能重试策略
+  getRetryStrategy(error, retryCount) {
+    const baseDelay = 1000; // 基础延迟1秒
+    
+    // 根据错误类型和重试次数调整策略
+    switch (error.type) {
+      case 'network':
+        // 网络错误：指数退避
+        return {
+          shouldRetry: retryCount < 3,
+          delay: baseDelay * Math.pow(2, retryCount),
+          maxRetries: 3
+        };
+      case 'timeout':
+        // 超时错误：线性增加延迟
+        return {
+          shouldRetry: retryCount < 2,
+          delay: baseDelay * (retryCount + 1),
+          maxRetries: 2
+        };
+      case 'server':
+        // 服务器错误：固定延迟
+        return {
+          shouldRetry: retryCount < 2,
+          delay: baseDelay * 2,
+          maxRetries: 2
+        };
+      default:
+        // 其他错误：简单重试
+        return {
+          shouldRetry: retryCount < 1,
+          delay: baseDelay,
+          maxRetries: 1
+        };
+    }
+  }
+
+  // 获取上传速度优化建议
+  getSpeedOptimizationSuggestions() {
+    const suggestions = [];
+    const networkSpeed = this.networkMonitor.getNetworkSpeed();
+    const memoryUsage = this.memoryMonitor.getMemoryUsagePercentage();
+    
+    // 网络速度建议
+    if (networkSpeed < 1) {
+      suggestions.push({
+        type: 'network',
+        priority: 'high',
+        message: '网络速度较慢，建议：',
+        actions: [
+          '减小分片大小到1MB',
+          '降低并发数到2',
+          '启用断点续传'
+        ]
+      });
+    } else if (networkSpeed > 10) {
+      suggestions.push({
+        type: 'network',
+        priority: 'medium',
+        message: '网络速度良好，建议：',
+        actions: [
+          '增加分片大小到10MB',
+          '提高并发数到8',
+          '优化网络连接'
+        ]
+      });
+    }
+    
+    // 内存使用建议
+    if (memoryUsage > 70) {
+      suggestions.push({
+        type: 'memory',
+        priority: 'high',
+        message: '内存使用率较高，建议：',
+        actions: [
+          '清理缓存',
+          '减少并发数',
+          '启用内存监控'
+        ]
+      });
+    }
+    
+    return suggestions;
+  }
+}
+
+// 断点续传优化器
+export class ResumeUploadOptimizer {
+  constructor() {
+    this.uploadSessions = new Map(); // 存储上传会话
+  }
+
+  // 创建上传会话
+  createSession(fileId) {
+    const session = {
+      fileId,
+      startTime: Date.now(),
+      completedChunks: new Set(),
+      failedChunks: new Set(),
+      pausedChunks: new Set(),
+      totalChunks: 0,
+      lastProgress: 0
+    };
+    
+    this.uploadSessions.set(fileId, session);
+    return session;
+  }
+
+  // 记录分片完成
+  recordChunkComplete(fileId, chunkIndex) {
+    const session = this.uploadSessions.get(fileId);
+    if (session) {
+      session.completedChunks.add(chunkIndex);
+      session.lastProgress = (session.completedChunks.size / session.totalChunks) * 100;
+    }
+  }
+
+  // 记录分片失败
+  recordChunkFailed(fileId, chunkIndex) {
+    const session = this.uploadSessions.get(fileId);
+    if (session) {
+      session.failedChunks.add(chunkIndex);
+    }
+  }
+
+  // 获取需要重试的分片
+  getRetryChunks(fileId) {
+    const session = this.uploadSessions.get(fileId);
+    if (!session) return [];
+    
+    return Array.from(session.failedChunks);
+  }
+
+  // 获取上传进度
+  getUploadProgress(fileId) {
+    const session = this.uploadSessions.get(fileId);
+    if (!session) return 0;
+    
+    return (session.completedChunks.size / session.totalChunks) * 100;
+  }
+
+  // 检查是否可以恢复上传
+  canResumeUpload(fileId) {
+    const session = this.uploadSessions.get(fileId);
+    return session && session.completedChunks.size > 0;
+  }
+
+  // 获取上传统计
+  getUploadStats(fileId) {
+    const session = this.uploadSessions.get(fileId);
+    if (!session) return null;
+    
+    const duration = Date.now() - session.startTime;
+    const completedCount = session.completedChunks.size;
+    const failedCount = session.failedChunks.size;
+    const totalCount = session.totalChunks;
+    
+    return {
+      duration,
+      completedCount,
+      failedCount,
+      totalCount,
+      progress: (completedCount / totalCount) * 100,
+      successRate: (completedCount / (completedCount + failedCount)) * 100
+    };
+  }
+
+  // 清理会话
+  cleanupSession(fileId) {
+    this.uploadSessions.delete(fileId);
+  }
 }
 
 // 导出默认实例
@@ -458,4 +699,6 @@ export const performanceOptimizer = new PerformanceOptimizer(
   performanceMonitor,
   networkMonitor,
   memoryMonitor
-); 
+);
+// eslint-disable-next-line no-unused-vars
+export const resumeUploadOptimizer = new ResumeUploadOptimizer(); 

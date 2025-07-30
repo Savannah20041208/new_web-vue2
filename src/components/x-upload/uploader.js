@@ -199,6 +199,42 @@ export const uploader = {
       this.files = this.files.filter((f) => f !== file);
       this.fileRemoved(file);
     },
+
+    // 动态调整并发数
+    adjustConcurrency() {
+      try {
+        const optimalConcurrency = this.getOptimalConcurrency();
+        const currentConcurrency = this.opts.simultaneousUploads;
+        
+        if (optimalConcurrency !== currentConcurrency) {
+          console.log(`动态调整并发数: ${currentConcurrency} -> ${optimalConcurrency}`);
+          this.opts.simultaneousUploads = optimalConcurrency;
+          
+          // 重新启动上传队列
+          this.processQueue();
+        }
+      } catch (error) {
+        console.warn('动态调整并发数失败:', error);
+      }
+    },
+
+    // 获取最优并发数
+    getOptimalConcurrency() {
+      try {
+        // 使用性能优化器的建议
+        return performanceOptimizer.getOptimalConcurrency();
+      } catch (error) {
+        // 如果性能监控不可用，使用基于网络速度的计算
+        const networkSpeed = this.networkSpeed || 5;
+        if (networkSpeed > 10) {
+          return 8; // 高速网络
+        } else if (networkSpeed > 5) {
+          return 6; // 中速网络
+        } else {
+          return 4; // 低速网络
+        }
+      }
+    },
   },
   created() {
     // 检查是否具有window，不具有设置支持状态为false，否则继续检查浏览器是否支持File、Blob和FileList对象
