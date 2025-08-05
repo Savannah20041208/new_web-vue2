@@ -1,7 +1,15 @@
+<<<<<<< HEAD
+=======
+// 1. 首先在 utils.js 中添加这两个函数
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
 export const utils = {
   data() {
     return {
       i: 0,
+<<<<<<< HEAD
+=======
+      networkSpeed: 5, // 默认网络速度
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
     };
   },
   methods: {
@@ -11,7 +19,11 @@ export const utils = {
     },
 
     // 定义不可枚举的属性
+<<<<<<< HEAD
     defineNonEnumerable(target, key, value) { 
+=======
+    defineNonEnumerable(target, key, value) {
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
       Object.defineProperty(target, key, {
         enumerable: false,
         configurable: true,
@@ -20,6 +32,86 @@ export const utils = {
       });
     },
 
+<<<<<<< HEAD
+=======
+    // 动态获取最优分片大小
+    getOptimalChunkSize(fileSize) {
+      if (fileSize < 50 * 1024 * 1024) { // 50MB以下
+        return 2 * 1024 * 1024; // 2MB
+      } else if (fileSize < 500 * 1024 * 1024) { // 500MB以下
+        return 5 * 1024 * 1024; // 5MB
+      } else {
+        return 10 * 1024 * 1024; // 10MB
+      }
+    },
+
+    // 动态获取最优并发数
+    getOptimalConcurrency(networkSpeed) {
+      if (networkSpeed > 10) { // 高速网络
+        return 8;
+      } else if (networkSpeed > 5) { // 中速网络
+        return 6;
+      } else {
+        return 4; // 低速网络
+      }
+    },
+
+    // 检测网络速度（简单实现）
+    async detectNetworkSpeed() {
+      try {
+        const startTime = Date.now();
+        // eslint-disable-next-line no-unused-vars
+        const response = await fetch('/api/speed-test', {
+          method: 'HEAD',
+          cache: 'no-cache'
+        });
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+
+        // 根据响应时间估算网络速度
+        if (duration < 100) {
+          this.networkSpeed = 15; // 高速
+        } else if (duration < 300) {
+          this.networkSpeed = 8; // 中速
+        } else {
+          this.networkSpeed = 3; // 低速
+        }
+      } catch (error) {
+        console.warn('网络速度检测失败，使用默认值');
+        this.networkSpeed = 5;
+      }
+      return this.networkSpeed;
+    },
+
+    // 监听网络变化
+    monitorNetworkStatus() {
+      if (navigator.connection) {
+        const connection = navigator.connection;
+        // 根据网络类型设置速度
+        switch (connection.effectiveType) {
+          case '4g':
+            this.networkSpeed = 15;
+            break;
+          case '3g':
+            this.networkSpeed = 8;
+            break;
+          case '2g':
+            this.networkSpeed = 3;
+            break;
+          default:
+            this.networkSpeed = 5;
+        }
+
+        // 监听网络变化
+        connection.addEventListener('change', () => {
+          this.monitorNetworkStatus();
+          // 触发重新配置
+          this.$emit('network-changed', this.networkSpeed);
+        });
+      }
+    },
+
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
     // 参数字符或方法判断
     evalOpts(data, args) {
       if (this.isFunction(data)) {
@@ -70,4 +162,8 @@ export const utils = {
       }
     },
   },
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc

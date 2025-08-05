@@ -1,5 +1,9 @@
 <template>
+<<<<<<< HEAD
   <div id="global-uploader" v-show="panelShow || !global" v-drag :class="{ 'global-uploader-single': !global }">
+=======
+  <div id="global-uploader" v-show="panelShow" v-drag :class="{ 'global-uploader-single': !global }">
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
     <input type="file" multiple @change="handleFileChange" style="display: none;" />
 
     <div class="uploader-app">
@@ -71,7 +75,11 @@ import Bus from './js/bus'
 // eslint-disable-next-line
 import drag from './js/drag';
 
+<<<<<<< HEAD
 var token = "a097f666a8c6d71cb3cb3b50c1f19d89";
+=======
+var token = "87362b4e4ab1abed34a7153e3bab18ce";
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
 
 export default {
   name: "XUpload",
@@ -84,6 +92,7 @@ export default {
       type: Boolean,
       default: true,
     },
+<<<<<<< HEAD
     // 上传模式：auto(自动选择), chunk(分片), direct(直接上传), supplement(补录)
     uploadMode: {
       type: String,
@@ -129,6 +138,27 @@ export default {
         chunkSize: 5 * 1024 * 1024, // 每个分片的大小，单位为字节（5MB）
         forceChunkSize: true, // 是否强制使用指定的分片大小
         simultaneousUploads: 3, // 同时上传的分片数量
+=======
+  },
+  data() {
+    return {
+      opts: {
+        target: (file, chunk) => {
+          // 分片检查请求
+          if (this.opts.testChunks && !chunk.tested) {
+            return `api/fileUploadTask/${file.uniqueIdentifier}`;
+          }
+          // 分片上传请求
+          return `api/fileUploadTask/upload`;
+        }, // 上传地址
+        // 根据文件大小和网络条件动态调整分片大小
+        chunkSize: 5 * 1024 * 1024,
+        forceChunkSize: true,
+        // 动态并发数 - 根据网络状况自动调整
+        simultaneousUploads: 4, // 默认值，实际会动态调整
+
+
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
         checkChunkUploadedByResponse: (chunk, message) => {
           console.log("checkChunkUploadedByResponse", chunk, message);
 
@@ -151,7 +181,11 @@ export default {
           return skip;
         }, // 是否根据服务器响应来检查分片是否已上传
         initialPaused: false, // 是否在初始化时暂停上传
+<<<<<<< HEAD
         testChunks: this.internalUploadMode === 'chunk', // 只有分片模式才测试分片
+=======
+        testChunks: true, // 是否在初始化时测试分片是否已上传
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
         testMethod: "GET", // 测试分片是否已上传的请求方法
         uploadMethod: "POST", // 上传分片的请求方法
         fileParameterName: "chunk", // 文件参数名
@@ -162,10 +196,17 @@ export default {
         }, // 成功状态码
         permanentErrors: [404, 415, 500, 501], // 错误状态码
         preprocess: null, // 预处理函数，用于修改文件对象
+<<<<<<< HEAD
         progressCallbacksInterval: 500, // 进度回调函数的间隔时间，单位为毫秒
         speedSmoothingFactor: 0.1, // 速度平滑因子，用于计算平均速度
         maxChunkRetries: 0, // 最大重试次数
         chunkRetryInterval: null, // 重试间隔时间，单位为毫秒
+=======
+        progressCallbacksInterval: 200, // 进度回调函数的间隔时间，单位为毫秒
+        speedSmoothingFactor: 0.1, // 速度平滑因子，用于计算平均速度
+        maxChunkRetries: 1, // 最大重试次数
+        chunkRetryInterval: 1000, // 重试间隔时间，单位为毫秒
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
         initTask: (file, message) => {
           // 初始化任务函数，用于初始化任务
           console.log("initTask", file, message);
@@ -231,6 +272,7 @@ export default {
           console.log("上传参数处理方法", params, file, chunk, isTest);
           if (isTest) return {};
 
+<<<<<<< HEAD
           // 获取当前文件的实际上传模式
           const actualMode = this.getActualUploadMode(file);
 
@@ -260,6 +302,12 @@ export default {
               ...this.internalCustomParams
             };
           }
+=======
+          return {
+            identifier: params.identifier,
+            partNumber: params.chunkNumber,
+          };
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
         },
         processResponse: (res, cb) => {
           // 处理服务器响应函数，用于解析服务器响应数据
@@ -275,6 +323,7 @@ export default {
 
       panelShow: false,
       collapse: false,
+<<<<<<< HEAD
 
       // 添加延迟时间控制
       maxConcurrentFiles: 3, // 默认最大并发文件数
@@ -283,10 +332,13 @@ export default {
       // 内部状态变量
       internalCustomParams: {},
       internalUploadMode: 'chunk' // 内部上传模式状态
+=======
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
     };
   },
 
   methods: {
+<<<<<<< HEAD
     // 调用networkspeed.js进行测速
     async testApiSpeed() {
       try {
@@ -325,6 +377,19 @@ export default {
     },
 
     // 处理文件选择事件
+=======
+    // 处理文件选择事件
+    async initializeUploadConfig() {
+      // 检测网络速度
+      const networkSpeed = await this.detectNetworkSpeed();
+
+      // 根据网络状况调整并发数
+      this.opts.simultaneousUploads = this.getOptimalConcurrency(networkSpeed);
+
+      console.log(`网络速度: ${networkSpeed}, 并发数设置为: ${this.opts.simultaneousUploads}`);
+    },
+
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
     handleFileChange(e) {
       // console.log('文件已选择', e.target.files);
       // 处理文件变化的逻辑
@@ -332,6 +397,7 @@ export default {
     },
 
     // 上传队列添加完毕，开始上传逻辑
+<<<<<<< HEAD
     async onFileAdded(file) {
       this.panelShow = true;
 
@@ -354,6 +420,43 @@ export default {
       this.computeMD5(file).then((result) => this.startUpload(result));
     },
 
+=======
+    onFileAdded(file) {
+      this.panelShow = true;
+
+      // 根据文件大小动态调整分片大小
+      const optimalChunkSize = this.getOptimalChunkSize(file.size);
+      console.log(`文件大小: ${this.formatSize(file.size)}, 分片大小设置为: ${this.formatSize(optimalChunkSize)}`);
+
+      // 更新当前文件的分片大小配置
+      this.opts.chunkSize = optimalChunkSize;
+
+      // 重新初始化文件分片（因为分片大小可能已改变）
+      this.bootstrap(file);
+
+      // 自定义文件预处理逻辑，如添加自定义属性等
+      this.computeMD5(file).then((result) => this.startUpload(result));
+    },
+
+    // 网络状况变化时重新配置
+    onNetworkChanged(networkSpeed) {
+      const newConcurrency = this.getOptimalConcurrency(networkSpeed);
+      this.opts.simultaneousUploads = newConcurrency;
+      console.log(`网络变化，并发数调整为: ${newConcurrency}`);
+
+      // 如果有正在上传的文件，可以考虑重新调整上传策略
+      this.files.forEach(file => {
+        if (file.isUploading()) {
+          // 可以在这里实现动态调整正在上传文件的策略
+          console.log(`正在调整文件 ${file.name} 的上传策略`);
+        }
+      });
+    },
+
+
+
+
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
     // 计算文件的MD5值
     computeMD5(file) {
       let fileReader = new FileReader();
@@ -428,8 +531,11 @@ export default {
       }
     },
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
     // 自定义文件状态
     statusSet(id, status) {
       let statusMap = {
@@ -477,7 +583,19 @@ export default {
     },
 
     // 开始逻辑上传
+<<<<<<< HEAD
     
+=======
+    startUpload({ md5, file }) {
+      // console.log('逻辑上传', file, md5);
+      // 设置文件的唯一标识符
+      file.uniqueIdentifier = md5;
+      // 移除自定义标识
+      this.statusRemove(file.id);
+      // 开始上传
+      file.upload();
+    },
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
 
     // 开始上传回调
     uploadStart() {
@@ -531,7 +649,17 @@ export default {
     },
 
     fileError(file, response, chunk) {
+<<<<<<< HEAD
       console.log("文件上传失败", file, response, chunk);
+=======
+      console.log("文件上传失败详情:", {
+        file: file.name,
+        response: response,
+        chunk: chunk,
+        chunkNumber: chunk ? chunk.offset + 1 : 'unknown',
+        xhr: chunk ? chunk.xhr : null
+      });
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
       this.error(response);
     },
 
@@ -562,6 +690,7 @@ export default {
       Bus.$emit(e);
       this.$emit(e);
     },
+<<<<<<< HEAD
 
     // 开始上传文件（合并后的方法）
     startUpload({ md5, file }) {
@@ -720,6 +849,35 @@ export default {
 
 
 
+=======
+  },
+
+  async mounted() {
+    // 组件挂载时初始化配置
+    await this.initializeUploadConfig();
+
+    // 开始监听网络状态变化
+    this.monitorNetworkStatus();
+
+    // 监听网络变化事件
+    this.$on('network-changed', this.onNetworkChanged);
+
+    // 现有的Bus监听
+    Bus.$on('openUploader', ({ files = [], params = {}, options = {} }) => {
+      console.log('openUploader', files, params, options);
+      this.addFiles(files);
+    });
+  },
+
+  beforeDestroy() {
+    // 清理事件监听
+    this.$off('network-changed', this.onNetworkChanged);
+  }
+};
+
+</script>
+
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
 <style>
 .custom-status {
   position: absolute;

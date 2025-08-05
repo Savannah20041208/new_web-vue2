@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+import { performanceOptimizer } from './js/performance.js';
+
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
 export const uploader = {
   data() {
     return {
@@ -17,9 +22,12 @@ export const uploader = {
   methods: {
     // 添加文件到上传队列
     addFiles(files) {
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
       for (const file of files) {
         // 如果当前浏览器不是 IE10/IE11（!ie10plus），或者虽然是 IE10/IE11 但文件大小大于 0，则通过检查。
         // 这是为了避免在 IE10/IE11 中上传空文件导致程序挂起的问题。
@@ -202,6 +210,45 @@ export const uploader = {
       this.files = this.files.filter((f) => f !== file);
       this.fileRemoved(file);
     },
+<<<<<<< HEAD
+=======
+
+    // 动态调整并发数
+    adjustConcurrency() {
+      try {
+        const optimalConcurrency = this.getOptimalConcurrency();
+        const currentConcurrency = this.opts.simultaneousUploads;
+        
+        if (optimalConcurrency !== currentConcurrency) {
+          console.log(`动态调整并发数: ${currentConcurrency} -> ${optimalConcurrency}`);
+          this.opts.simultaneousUploads = optimalConcurrency;
+          
+          // 重新启动上传队列
+          this.processQueue();
+        }
+      } catch (error) {
+        console.warn('动态调整并发数失败:', error);
+      }
+    },
+
+    // 获取最优并发数
+    getOptimalConcurrency() {
+      try {
+        // 使用性能优化器的建议
+        return performanceOptimizer.getOptimalConcurrency();
+      } catch (error) {
+        // 如果性能监控不可用，使用基于网络速度的计算
+        const networkSpeed = this.networkSpeed || 5;
+        if (networkSpeed > 10) {
+          return 8; // 高速网络
+        } else if (networkSpeed > 5) {
+          return 6; // 中速网络
+        } else {
+          return 4; // 低速网络
+        }
+      }
+    },
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
   },
   created() {
     // 检查是否具有window，不具有设置支持状态为false，否则继续检查浏览器是否支持File、Blob和FileList对象

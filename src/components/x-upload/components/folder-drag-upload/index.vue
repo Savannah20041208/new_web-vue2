@@ -20,7 +20,10 @@
             </svg>
           </div>
           <div class="upload__text">将文件夹或文件拖拽到此处，或<em>点击上传</em></div>
+<<<<<<< HEAD
           <div class="upload__tip">智能上传：≤5MB直接上传，>5MB分片上传</div>
+=======
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
         </template>
         <template v-else>
           <el-table :data="Array.from(files)" height="100%" style="width: 100%" show-summary sum-text="共计"
@@ -85,10 +88,13 @@ export default {
     submitFiles() {
       this.$uploadBus.$emit('openUploader', {
         files: this.files,
+<<<<<<< HEAD
         params: {},
         options: {
           uploadMode: 'auto' // 使用自动模式，根据文件大小智能选择上传方式
         }
+=======
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
       })
     },
     onDragover(e) {
@@ -215,6 +221,7 @@ export default {
         color: #66b1ff;
       }
     }
+<<<<<<< HEAD
 
     .upload__tip {
       margin-top: 8px;
@@ -222,6 +229,8 @@ export default {
       color: #909399;
       text-align: center;
     }
+=======
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
   }
 
   .tip_container {

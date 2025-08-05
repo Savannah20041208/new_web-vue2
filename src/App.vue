@@ -1,21 +1,31 @@
 <template>
   <div id="app" style="height: 100vh">
+<<<<<<< HEAD
     <navigation />
     <div class="main-content">
       <router-view></router-view>
     </div>
 
     <x-upload ref="globalUploader" />
+=======
+    <router-view></router-view>
+
+    <x-upload />
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
   </div>
 </template>
 
 <script>
 import XUpload from "@/components/x-upload";
+<<<<<<< HEAD
 import Navigation from "@/components/navigation";
+=======
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
 
 export default {
   name: "App",
   components: {
+<<<<<<< HEAD
     XUpload,
     Navigation
   },
@@ -61,3 +71,9 @@ export default {
   overflow: auto;
 }
 </style>
+=======
+    XUpload
+  },
+};
+</script>
+>>>>>>> a93aa63421119dc40135dbf220ee2c0abd67bfdc
